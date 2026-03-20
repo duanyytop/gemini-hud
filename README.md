@@ -4,10 +4,12 @@ HUD status bar embedded directly in Gemini CLI's footer — no extra panes, no t
 
 Uses Node.js ESM Loader Hooks to intercept and enhance Gemini CLI's Footer component at runtime.
 
-```
-~/project (main*) │ macOS Seatbelt │ /model gemini-2.5-pro 23% context used
-⚡gemini-2.5-pro │ CTX [████░░░░░░░░░░░░░░░░] 23% │ IN:45.2K OUT:12.1K │ 🔧3 │  main │ ⏱ 4m32s
-```
+![gemini-hud screenshot](assets/gemini-hud.png)
+
+## Prerequisites
+
+- **Node.js** >= 20
+- **Gemini CLI** >= 0.34.0 (`npm install -g @google/gemini-cli`)
 
 ## Install
 
@@ -76,6 +78,7 @@ All fields are optional — defaults apply for anything omitted.
 ## Compatibility
 
 - **Node.js**: >= 20 (ESM loader hooks)
+- **Gemini CLI**: >= 0.34.0 (column-based Footer with `FooterRow`)
 - **Platforms**: macOS, Linux, Windows
 - **Gemini CLI updates**: If `Footer.js` path changes, update the `FOOTER_PATTERN` regex in `loader.mjs`
 
