@@ -1,5 +1,7 @@
 # gemini-hud
 
+[中文文档](README.zh-CN.md)
+
 HUD status bar embedded directly in Gemini CLI's footer — no extra panes, no tmux required.
 
 Uses Node.js ESM Loader Hooks to intercept and enhance Gemini CLI's Footer component at runtime.
