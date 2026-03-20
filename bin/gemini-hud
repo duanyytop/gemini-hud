@@ -1,0 +1,79 @@
+#!/usr/bin/env node
+
+/**
+ * gemini-hud — Launch Gemini CLI with HUD status bar injected.
+ *
+ * Usage: gemini-hud [gemini args...]
+ *
+ * Cross-platform: works on macOS, Linux, and Windows (via node shebang).
+ */
+
+import { execSync, spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { dirname, join, resolve } from 'node:path';
+import { existsSync } from 'node:fs';
+import process from 'node:process';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const registerPath = resolve(__dirname, '..', 'register.mjs');
+
+// Find the gemini binary
+function findGemini() {
+  // 1. GEMINI_PATH env override
+  if (process.env.GEMINI_PATH) {
+    if (existsSync(process.env.GEMINI_PATH)) return process.env.GEMINI_PATH;
+    console.error(`GEMINI_PATH="${process.env.GEMINI_PATH}" does not exist.`);
+    process.exit(1);
+  }
+
+  // 2. which/where
+  try {
+    const isWindows = process.platform === 'win32';
+    const cmd = isWindows ? 'where gemini' : 'which gemini';
+    const result = execSync(cmd, { encoding: 'utf8' }).trim().split('\n')[0];
+    if (result && existsSync(result)) return result;
+  } catch {
+    // not found
+  }
+
+  // 3. Common global npm paths
+  const npmGlobalDirs = [
+    join(process.env.HOME || process.env.USERPROFILE || '', '.npm-global', 'bin', 'gemini'),
+    '/usr/local/bin/gemini',
+    '/opt/homebrew/bin/gemini',
+  ];
+  for (const p of npmGlobalDirs) {
+    if (existsSync(p)) return p;
+  }
+
+  console.error(
+    'Could not find gemini CLI. Install it with: npm install -g @google/gemini-cli\n' +
+    'Or set GEMINI_PATH=/path/to/gemini'
+  );
+  process.exit(1);
+}
+
+const geminiPath = findGemini();
+const args = process.argv.slice(2);
+
+// Spawn: node --import register.mjs <gemini> [args...]
+const child = spawn(
+  process.execPath,
+  ['--import', registerPath, geminiPath, ...args],
+  {
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      GEMINI_HUD: '1',
+      // Suppress the ExperimentalWarning for --import
+      NODE_NO_WARNINGS: '1',
+    },
+  }
+);
+
+child.on('exit', (code) => process.exit(code ?? 0));
+child.on('error', (err) => {
+  console.error('Failed to start gemini:', err.message);
+  process.exit(1);
+});
