@@ -13,12 +13,23 @@
     "hud-footer.mjs",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/duanyytop/gemini-hud.git"
+  },
+  "homepage": "https://github.com/duanyytop/gemini-hud#readme",
+  "bugs": {
+    "url": "https://github.com/duanyytop/gemini-hud/issues"
+  },
+  "author": "duanyytop",
   "keywords": [
     "gemini",
+    "gemini-cli",
     "cli",
     "hud",
     "status-bar",
-    "developer-tools"
+    "developer-tools",
+    "esm-loader"
   ],
   "license": "MIT",
   "engines": {
