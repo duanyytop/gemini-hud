@@ -1,6 +1,6 @@
 {
   "name": "gemini-hud",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "HUD status bar embedded in Gemini CLI footer via ESM loader hook",
   "type": "module",
   "bin": {
