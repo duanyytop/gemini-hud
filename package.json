@@ -1,0 +1,27 @@
+{
+  "name": "gemini-hud",
+  "version": "0.1.0",
+  "description": "HUD status bar embedded in Gemini CLI footer via ESM loader hook",
+  "type": "module",
+  "bin": {
+    "gemini-hud": "./bin/gemini-hud"
+  },
+  "files": [
+    "bin",
+    "register.mjs",
+    "loader.mjs",
+    "hud-footer.mjs",
+    "README.md"
+  ],
+  "keywords": [
+    "gemini",
+    "cli",
+    "hud",
+    "status-bar",
+    "developer-tools"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
