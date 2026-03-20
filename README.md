@@ -39,18 +39,13 @@ Create `~/.gemini-hudrc` (JSON):
 ```json
 {
   "colors": {
-    "barFilled": "cyan",
-    "barEmpty": "gray",
     "label": "gray",
     "value": "white",
     "separator": "gray",
-    "modelName": "green",
     "warning": "yellow",
     "danger": "red"
   },
-  "barWidth": 20,
   "contextMaxTokens": 1000000,
-  "showGitBranch": true,
   "showSessionDuration": true,
   "showTokenBreakdown": true,
   "showToolCalls": true
@@ -70,11 +65,9 @@ All fields are optional — defaults apply for anything omitted.
 
 | Info | Source |
 |------|--------|
-| Model name | `uiState.currentModel` (via Footer props) |
 | Context % | `uiState.sessionStats.lastPromptTokenCount` (via Footer props) |
 | Token breakdown | `~/.gemini/tmp/<project>/chats/session-*.json` |
 | Tool calls | Session JSON `messages[].parts[].functionCall` |
-| Git branch | `git rev-parse --abbrev-ref HEAD` |
 | Session duration | Timer started at component mount |
 
 ## Compatibility

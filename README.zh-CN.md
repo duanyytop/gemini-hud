@@ -37,18 +37,13 @@ node --import /path/to/register.mjs $(which gemini)
 ```json
 {
   "colors": {
-    "barFilled": "cyan",
-    "barEmpty": "gray",
     "label": "gray",
     "value": "white",
     "separator": "gray",
-    "modelName": "green",
     "warning": "yellow",
     "danger": "red"
   },
-  "barWidth": 20,
   "contextMaxTokens": 1000000,
-  "showGitBranch": true,
   "showSessionDuration": true,
   "showTokenBreakdown": true,
   "showToolCalls": true
@@ -68,11 +63,9 @@ node --import /path/to/register.mjs $(which gemini)
 
 | 信息 | 来源 |
 |------|------|
-| 模型名称 | `uiState.currentModel`（通过 Footer props） |
 | 上下文用量 | `uiState.sessionStats.lastPromptTokenCount`（通过 Footer props） |
 | Token 分项 | `~/.gemini/tmp/<project>/chats/session-*.json` |
 | 工具调用 | Session JSON `messages[].parts[].functionCall` |
-| Git 分支 | `git rev-parse --abbrev-ref HEAD` |
 | 会话时长 | 组件挂载时启动计时器 |
 
 ## 兼容性

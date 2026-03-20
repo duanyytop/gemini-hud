@@ -9,7 +9,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from 'react/jsx-runtime';
 import { useState, useEffect, useRef } from 'react';
 import { Box, Text } from 'ink';
-import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -175,18 +174,13 @@ function isFooterItemId(id) {
 
 const DEFAULT_HUD_CONFIG = {
   colors: {
-    barFilled: 'cyan',
-    barEmpty: 'gray',
     label: 'gray',
     value: 'white',
     separator: 'gray',
-    modelName: 'green',
     warning: 'yellow',
     danger: 'red',
   },
-  barWidth: 20,
   contextMaxTokens: 1_000_000,
-  showGitBranch: true,
   showSessionDuration: true,
   showTokenBreakdown: true,
   showToolCalls: true,
@@ -271,16 +265,6 @@ function getTokensFromSession(sessionData) {
   };
 }
 
-function getGitBranch() {
-  try {
-    return execSync('git rev-parse --abbrev-ref HEAD 2>/dev/null', {
-      encoding: 'utf8',
-    }).trim();
-  } catch {
-    return '';
-  }
-}
-
 function formatTokenCount(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
   if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
@@ -298,30 +282,10 @@ function formatDuration(ms) {
 }
 
 // =====================================================================
-//  HUD visual components
+//  HUD line component
 // =====================================================================
 
-function ProgressBar({ ratio, width, filledColor, emptyColor }) {
-  const clamped = Math.max(0, Math.min(1, ratio));
-  const filled = Math.round(clamped * width);
-  const empty = width - filled;
-  const barColor =
-    clamped >= 0.9
-      ? hudConfig.colors.danger
-      : clamped >= 0.7
-        ? hudConfig.colors.warning
-        : filledColor;
-  return _jsxs(Text, {
-    children: [
-      _jsx(Text, { color: 'gray', children: '[' }),
-      _jsx(Text, { color: barColor, children: '\u2588'.repeat(filled) }),
-      _jsx(Text, { color: emptyColor, children: '\u2591'.repeat(empty) }),
-      _jsx(Text, { color: 'gray', children: ']' }),
-    ],
-  });
-}
-
-function HudLine({ promptTokenCount, model, terminalWidth }) {
+function HudLine({ promptTokenCount, terminalWidth }) {
   const [sessionData, setSessionData] = useState(null);
   const [elapsed, setElapsed] = useState(0);
   const startTimeRef = useRef(Date.now());
@@ -339,42 +303,28 @@ function HudLine({ promptTokenCount, model, terminalWidth }) {
   const c = hudConfig.colors;
   const tokens = sessionData ? getTokensFromSession(sessionData) : null;
   const toolCalls = sessionData ? countToolCalls(sessionData) : 0;
-  const gitBranch = hudConfig.showGitBranch ? getGitBranch() : '';
   const contextRatio = promptTokenCount
     ? promptTokenCount / hudConfig.contextMaxTokens
     : 0;
+  const ctxPct = (contextRatio * 100).toFixed(0);
+  const ctxColor =
+    contextRatio >= 0.9
+      ? c.danger
+      : contextRatio >= 0.7
+        ? c.warning
+        : c.value;
 
   const sep = _jsx(Text, { color: c.separator, children: ' \u2502 ' });
   const parts = [];
 
-  // Model
+  // Context usage
   parts.push(
     _jsxs(Text, {
-      key: 'model',
-      children: [
-        _jsx(Text, { color: c.label, children: '\u26A1' }),
-        _jsx(Text, { color: c.modelName, children: getDisplayString(model) }),
-      ],
-    })
-  );
-
-  // Context bar
-  parts.push(sep);
-  parts.push(
-    _jsxs(Box, {
       key: 'ctx',
       children: [
-        _jsx(Text, { color: c.label, children: 'CTX ' }),
-        _jsx(ProgressBar, {
-          ratio: contextRatio,
-          width: hudConfig.barWidth,
-          filledColor: c.barFilled,
-          emptyColor: c.barEmpty,
-        }),
-        _jsx(Text, {
-          color: c.value,
-          children: ` ${(contextRatio * 100).toFixed(0)}%`,
-        }),
+        _jsx(Text, { color: c.label, children: '[ctx: ' }),
+        _jsx(Text, { color: ctxColor, children: `${ctxPct}%` }),
+        _jsx(Text, { color: c.label, children: ']' }),
       ],
     })
   );
@@ -420,20 +370,6 @@ function HudLine({ promptTokenCount, model, terminalWidth }) {
         children: [
           _jsx(Text, { color: c.label, children: '\uD83D\uDD27' }),
           _jsx(Text, { color: c.value, children: String(toolCalls) }),
-        ],
-      })
-    );
-  }
-
-  // Git branch
-  if (hudConfig.showGitBranch && gitBranch) {
-    parts.push(sep);
-    parts.push(
-      _jsxs(Text, {
-        key: 'git',
-        children: [
-          _jsx(Text, { color: c.label, children: '\uD83C\uDF3F' }),
-          _jsx(Text, { color: c.value, children: gitBranch }),
         ],
       })
     );
@@ -798,7 +734,7 @@ export const Footer = () => {
     width: terminalWidth,
     children: [
       originalFooter,
-      _jsx(HudLine, { promptTokenCount, model, terminalWidth }),
+      _jsx(HudLine, { promptTokenCount, terminalWidth }),
     ],
   });
 };
