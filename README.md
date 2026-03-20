@@ -26,10 +26,10 @@ gemini-hud          # launches gemini with HUD
 gemini-hud --help   # passes args through to gemini
 ```
 
-Or manually:
+Or manually (replace the path if installed elsewhere):
 
 ```bash
-node --import /path/to/register.mjs $(which gemini)
+node --import ./register.mjs $(which gemini)
 ```
 
 ## Configuration

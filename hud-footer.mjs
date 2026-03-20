@@ -282,12 +282,43 @@ function formatDuration(ms) {
 }
 
 // =====================================================================
+//  HUD visual components
+// =====================================================================
+
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+
+function Spinner() {
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setFrame((f) => (f + 1) % SPINNER_FRAMES.length), 80);
+    return () => clearInterval(timer);
+  }, []);
+  return _jsx(Text, { color: 'cyan', children: SPINNER_FRAMES[frame] });
+}
+
+function ShortcutTips() {
+  const tips = ['/? help', '/copy code', '/clear screen', '/new session', '/quit'];
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setIndex((i) => (i + 1) % tips.length), 5000);
+    return () => clearInterval(timer);
+  }, []);
+  return _jsxs(Text, {
+    children: [
+      _jsx(Text, { color: 'gray', children: 'TIP: ' }),
+      _jsx(Text, { color: 'white', children: tips[index] }),
+    ],
+  });
+}
+
+// =====================================================================
 //  HUD line component
 // =====================================================================
 
-function HudLine({ promptTokenCount, terminalWidth }) {
+function HudLine({ promptTokenCount, terminalWidth, activeTasks = [] }) {
   const [sessionData, setSessionData] = useState(null);
   const [elapsed, setElapsed] = useState(0);
+  const [isBright, setIsBright] = useState(true);
   const startTimeRef = useRef(Date.now());
 
   useEffect(() => {
@@ -300,22 +331,47 @@ function HudLine({ promptTokenCount, terminalWidth }) {
     return () => clearInterval(id);
   }, []);
 
-  const c = hudConfig.colors;
-  const tokens = sessionData ? getTokensFromSession(sessionData) : null;
-  const toolCalls = sessionData ? countToolCalls(sessionData) : 0;
   const contextRatio = promptTokenCount
     ? promptTokenCount / hudConfig.contextMaxTokens
     : 0;
+
+  useEffect(() => {
+    if (contextRatio < 0.9) {
+      setIsBright(true);
+      return;
+    }
+    const timer = setInterval(() => setIsBright((b) => !b), 500);
+    return () => clearInterval(timer);
+  }, [contextRatio]);
+
+  const c = hudConfig.colors;
+  const tokens = sessionData ? getTokensFromSession(sessionData) : null;
+  const toolCalls = sessionData ? countToolCalls(sessionData) : 0;
   const ctxPct = (contextRatio * 100).toFixed(0);
   const ctxColor =
     contextRatio >= 0.9
-      ? c.danger
+      ? (isBright ? c.danger : 'gray')
       : contextRatio >= 0.7
         ? c.warning
         : c.value;
 
   const sep = _jsx(Text, { color: c.separator, children: ' \u2502 ' });
   const parts = [];
+
+  // Active Tasks / Sub-agents
+  if (activeTasks.length > 0) {
+    parts.push(
+      _jsxs(Box, {
+        key: 'tasks',
+        marginRight: 1,
+        children: [
+          _jsx(Spinner, {}),
+          _jsx(Text, { color: 'cyan', children: ` ${activeTasks.length} task${activeTasks.length > 1 ? 's' : ''}` }),
+        ],
+      })
+    );
+    parts.push(sep);
+  }
 
   // Context usage
   parts.push(
@@ -389,10 +445,14 @@ function HudLine({ promptTokenCount, terminalWidth }) {
     );
   }
 
-  return _jsx(Box, {
+  return _jsxs(Box, {
     width: terminalWidth,
     paddingX: 1,
-    children: _jsx(Box, { children: parts }),
+    justifyContent: 'space-between',
+    children: [
+      _jsx(Box, { children: parts }),
+      _jsx(ShortcutTips, {}),
+    ],
   });
 }
 
@@ -432,6 +492,7 @@ export const Footer = () => {
     isTrustedFolder: uiState.isTrustedFolder,
     terminalWidth: uiState.terminalWidth,
     quotaStats: uiState.quota.stats,
+    activeTasks: uiState.activeTasks || [],
   };
 
   const isFullErrorVerbosity = settings.merged.ui.errorVerbosity === 'full';
@@ -728,13 +789,15 @@ export const Footer = () => {
     children: _jsx(FooterRow, { items: rowItems, showLabels }),
   });
 
+  const { activeTasks } = { activeTasks: uiState.activeTasks || [] };
+
   // ---------- Combined: original + HUD ----------
   return _jsxs(Box, {
     flexDirection: 'column',
     width: terminalWidth,
     children: [
       originalFooter,
-      _jsx(HudLine, { promptTokenCount, terminalWidth }),
+      _jsx(HudLine, { promptTokenCount, terminalWidth, activeTasks }),
     ],
   });
 };

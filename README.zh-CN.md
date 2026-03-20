@@ -24,10 +24,10 @@ gemini-hud          # 启动带 HUD 的 gemini
 gemini-hud --help   # 参数直接传递给 gemini
 ```
 
-或手动运行：
+或手动运行（路径按实际安装位置替换）：
 
 ```bash
-node --import /path/to/register.mjs $(which gemini)
+node --import ./register.mjs $(which gemini)
 ```
 
 ## 配置
